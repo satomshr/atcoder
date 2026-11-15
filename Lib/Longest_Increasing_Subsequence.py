@@ -1,17 +1,83 @@
-# https://qiita.com/python_walker/items/d1e2be789f6e7a0851e5
 
-import bisect
+from bisect import bisect_left, bisect_right
 
-def Longest_Increasing_Subsequence(lst):
-    LIS = [lst[0]]
 
-    for i in range(len(lst)):
-        if lst[i] > LIS[-1]:
-            LIS.append(lst[i])
+def lis_strict(a):
+    """狭義単調増加部分列（LIS）を1つ返す。O(N log N)"""
+    n = len(a)
+    if n == 0:
+        return []
+
+    # tails[i] = 長さ i+1 の増加部分列の末尾として最小の値
+    tails = []
+    tails_idx = []
+
+    # 復元用
+    prev = [-1] * n
+
+    for i, x in enumerate(a):
+        j = bisect_left(tails, x)
+
+        if j == len(tails):
+            tails.append(x)
+            tails_idx.append(i)
         else:
-            LIS[bisect.bisect_left(LIS, lst[i])] = lst[i]
+            tails[j] = x
+            tails_idx[j] = i
 
-    return(len(LIS))
+        if j > 0:
+            prev[i] = tails_idx[j - 1]
 
-A = [1, 3, 5, 4, 2, 6]
-print(Longest_Increasing_Subsequence(A))
+    # 復元
+    idx = tails_idx[-1]
+    ans = []
+
+    while idx != -1:
+        ans.append(a[idx])
+        idx = prev[idx]
+
+    ans.reverse()
+    return ans
+
+
+
+def lis_non_strict(a):
+    """広義単調増加部分列（LNDS）を1つ返す。O(N log N)"""
+    n = len(a)
+    if n == 0:
+        return []
+
+    tails = []
+    tails_idx = []
+
+    # 復元用
+    prev = [-1] * n
+
+    for i, x in enumerate(a):
+        j = bisect_right(tails, x)
+
+        if j == len(tails):
+            tails.append(x)
+            tails_idx.append(i)
+        else:
+            tails[j] = x
+            tails_idx[j] = i
+
+        if j > 0:
+            prev[i] = tails_idx[j - 1]
+
+    # 復元
+    idx = tails_idx[-1]
+    ans = []
+
+    while idx != -1:
+        ans.append(a[idx])
+        idx = prev[idx]
+
+    ans.reverse()
+    return ans
+
+
+a = [3, 1, 2, 2, 5, 4, 4, 6]
+print(lis_strict(a))
+print(lis_non_strict(a))
